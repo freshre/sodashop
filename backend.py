@@ -80,58 +80,64 @@ class OrderCreate(BaseModel):
 # Инициализация БД
 @app.on_event("startup")
 def init_db():
-    print("Starting init_db...")
-    db_url = get_database_url()
-    print(f"DATABASE_URL: {db_url}")
-    conn = psycopg2.connect(db_url)
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            username VARCHAR(50) UNIQUE NOT NULL,
-            email VARCHAR(100) UNIQUE NOT NULL,
-            password_hash VARCHAR(255) NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE TABLE IF NOT EXISTS drinks (
-            id SERIAL PRIMARY KEY,
-            brand VARCHAR(50) NOT NULL,
-            logo VARCHAR(10) NOT NULL,
-            name VARCHAR(100) NOT NULL,
-            flavor VARCHAR(100) NOT NULL,
-            vol INT NOT NULL,
-            price INT NOT NULL,
-            emoji VARCHAR(10) NOT NULL,
-            color VARCHAR(7) NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS orders (
-            id SERIAL PRIMARY KEY,
-            user_id INT REFERENCES users(id),
-            total INT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE TABLE IF NOT EXISTS order_items (
-            id SERIAL PRIMARY KEY,
-            order_id INT REFERENCES orders(id),
-            drink_id INT REFERENCES drinks(id),
-            quantity INT NOT NULL,
-            price INT NOT NULL
-        );
-    """)
-    # Вставка напитков, если таблица пустая
-    cursor.execute("SELECT COUNT(*) FROM drinks")
-    if cursor.fetchone()[0] == 0:
-        drinks = [
-            ("Coca-Cola", "🔴", "Coca-Cola Classic", "Классическая кола", 330, 89, "🥤", "#C8001E"),
-            ("Pepsi", "🔵", "Pepsi Original", "Оригинальная", 500, 85, "🥤", "#004B93"),
-            ("Sprite", "🟢", "Sprite Лимон-лайм", "Лимон и лайм", 500, 85, "🍋", "#00A550"),
-            ("Fanta", "🟠", "Fanta Апельсин", "Апельсин", 500, 85, "🍊", "#FF6B00"),
-            ("Red Bull", "🐂", "Red Bull Energy", "Классический", 250, 129, "⚡", "#CC1E25"),
-            ("Mountain Dew", "💚", "Mtn Dew Original", "Цитрус", 500, 99, "🍈", "#88CC00"),
-        ]
-        cursor.executemany("INSERT INTO drinks (brand, logo, name, flavor, vol, price, emoji, color) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", drinks)
-    conn.commit()
-    conn.close()
+    try:
+        print("Starting init_db...")
+        db_url = get_database_url()
+        print(f"DATABASE_URL: {db_url}")
+        conn = psycopg2.connect(db_url)
+        cursor = conn.cursor()
+        print("Connected to database successfully")
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                email VARCHAR(100) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS drinks (
+                id SERIAL PRIMARY KEY,
+                brand VARCHAR(50) NOT NULL,
+                logo VARCHAR(10) NOT NULL,
+                name VARCHAR(100) NOT NULL,
+                flavor VARCHAR(100) NOT NULL,
+                vol INT NOT NULL,
+                price INT NOT NULL,
+                emoji VARCHAR(10) NOT NULL,
+                color VARCHAR(7) NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS orders (
+                id SERIAL PRIMARY KEY,
+                user_id INT REFERENCES users(id),
+                total INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS order_items (
+                id SERIAL PRIMARY KEY,
+                order_id INT REFERENCES orders(id),
+                drink_id INT REFERENCES drinks(id),
+                quantity INT NOT NULL,
+                price INT NOT NULL
+            );
+        """)
+        # Вставка напитков, если таблица пустая
+        cursor.execute("SELECT COUNT(*) FROM drinks")
+        if cursor.fetchone()[0] == 0:
+            drinks = [
+                ("Coca-Cola", "🔴", "Coca-Cola Classic", "Классическая кола", 330, 89, "🥤", "#C8001E"),
+                ("Pepsi", "🔵", "Pepsi Original", "Оригинальная", 500, 85, "🥤", "#004B93"),
+                ("Sprite", "🟢", "Sprite Лимон-лайм", "Лимон и лайм", 500, 85, "🍋", "#00A550"),
+                ("Fanta", "🟠", "Fanta Апельсин", "Апельсин", 500, 85, "🍊", "#FF6B00"),
+                ("Red Bull", "🐂", "Red Bull Energy", "Классический", 250, 129, "⚡", "#CC1E25"),
+                ("Mountain Dew", "💚", "Mtn Dew Original", "Цитрус", 500, 99, "🍈", "#88CC00"),
+            ]
+            cursor.executemany("INSERT INTO drinks (brand, logo, name, flavor, vol, price, emoji, color) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", drinks)
+        conn.commit()
+        conn.close()
+        print("Database initialized successfully")
+    except Exception as e:
+        print(f"Error in init_db: {e}")
+        raise
 
 # Роуты
 @app.post("/register")
