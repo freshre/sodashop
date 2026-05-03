@@ -1,3 +1,4 @@
+print("Importing backend...")
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -9,13 +10,19 @@ from typing import List, Optional
 import hashlib
 import hmac
 
+print("psycopg2 imported successfully")
+
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ModuleNotFoundError:
     pass
 
+print("dotenv handled")
+
 app = FastAPI(title="SodaShop API")
+
+print("FastAPI app created")
 
 # CORS для React
 origins = [
@@ -31,6 +38,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+print("CORS added")
+
 # Подключение к БД
 
 def get_database_url():
@@ -41,13 +50,14 @@ def get_database_url():
         )
     return database_url
 
-
 def get_db():
     conn = psycopg2.connect(get_database_url(), cursor_factory=RealDictCursor)
     try:
         yield conn
     finally:
         conn.close()
+
+print("Database functions defined")
 
 # Модели
 class UserCreate(BaseModel):
@@ -76,6 +86,8 @@ class OrderItem(BaseModel):
 
 class OrderCreate(BaseModel):
     items: List[OrderItem]
+
+print("Models defined")
 
 # Инициализация БД
 @app.on_event("startup")
@@ -138,6 +150,8 @@ def init_db():
     except Exception as e:
         print(f"Error in init_db: {e}")
         raise
+
+print("init_db defined")
 
 # Роуты
 @app.post("/register")
@@ -220,3 +234,6 @@ def get_profile(user_id: int, db=Depends(get_db)):
     """, (user_id,))
     stats = cursor.fetchone()
     return {**dict(user), **dict(stats)}
+
+print("Routes defined")
+print("Backend module loaded successfully")
