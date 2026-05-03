@@ -80,7 +80,10 @@ class OrderCreate(BaseModel):
 # Инициализация БД
 @app.on_event("startup")
 def init_db():
-    conn = psycopg2.connect(get_database_url())
+    print("Starting init_db...")
+    db_url = get_database_url()
+    print(f"DATABASE_URL: {db_url}")
+    conn = psycopg2.connect(db_url)
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
