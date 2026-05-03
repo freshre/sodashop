@@ -70,14 +70,19 @@
 ### 2. Backend (Railway)
 1. Зарегистрируйтесь на Railway
 2. Создайте новый проект из GitHub
-3. Добавьте переменную окружения DATABASE_URL
-4. Railway автоматически развернет backend
+3. Выберите репозиторий `freshre/sodashop` и ветку `main`
+4. В настройках проекта добавьте переменную окружения `DATABASE_URL`
+   - Значение берите из Supabase или из вашего PostgreSQL
+   - Пример: `postgresql://username:password@host:5432/dbname`
+5. Railway автоматически развернет backend
 
 ### 3. Frontend (Vercel)
 1. Зарегистрируйтесь на Vercel
 2. Импортируйте репозиторий из GitHub
-3. Добавьте переменную окружения VITE_API_BASE с URL backend (например, https://your-app.railway.app)
-4. Vercel развернет frontend
+3. Если нужно, выберите ветку `main`
+4. В настройках Environment Variables добавьте `VITE_API_BASE` со значением URL backend
+   - Пример: `https://your-app.railway.app`
+5. Vercel развернет frontend
 
 ## API Endpoints
 

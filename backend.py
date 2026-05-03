@@ -32,10 +32,18 @@ app.add_middleware(
 )
 
 # Подключение к БД
-DATABASE_URL = os.getenv("DATABASE_URL")
+
+def get_database_url():
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise RuntimeError(
+            "DATABASE_URL не задан. Установите переменную окружения DATABASE_URL в Railway или Supabase."
+        )
+    return database_url
+
 
 def get_db():
-    conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    conn = psycopg2.connect(get_database_url(), cursor_factory=RealDictCursor)
     try:
         yield conn
     finally:
@@ -72,7 +80,7 @@ class OrderCreate(BaseModel):
 # Инициализация БД
 @app.on_event("startup")
 def init_db():
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = psycopg2.connect(get_database_url())
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
