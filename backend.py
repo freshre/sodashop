@@ -6,10 +6,14 @@ from psycopg2.extras import RealDictCursor
 import os
 from datetime import datetime
 from typing import List, Optional
-from dotenv import load_dotenv
-import bcrypt
+import hashlib
+import hmac
 
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ModuleNotFoundError:
+    pass
 
 app = FastAPI(title="SodaShop API")
 
@@ -122,7 +126,7 @@ def init_db():
 @app.post("/register")
 def register(user: UserCreate, db=Depends(get_db)):
     cursor = db.cursor()
-    hashed = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    hashed = hashlib.sha256(user.password.encode("utf-8")).hexdigest()
     try:
         cursor.execute("INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s) RETURNING id",
                        (user.username, user.email, hashed))
@@ -138,7 +142,8 @@ def login(user: UserLogin, db=Depends(get_db)):
     cursor.execute("SELECT id, username, email, password_hash, created_at FROM users WHERE username = %s",
                    (user.username,))
     result = cursor.fetchone()
-    if not result or not bcrypt.checkpw(user.password.encode('utf-8'), result["password_hash"].encode('utf-8')):
+    hashed = hashlib.sha256(user.password.encode("utf-8")).hexdigest()
+    if not result or not hmac.compare_digest(hashed, result["password_hash"]):
         raise HTTPException(status_code=401, detail="Неверные данные")
     return {k: v for k, v in result.items() if k != "password_hash"}
 
