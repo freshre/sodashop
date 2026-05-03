@@ -198,7 +198,3 @@ def get_profile(user_id: int, db=Depends(get_db)):
     """, (user_id,))
     stats = cursor.fetchone()
     return {**dict(user), **dict(stats)}
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
